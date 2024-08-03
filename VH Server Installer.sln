@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VH Server Installer", "VH Server Installer\VH Server Installer.csproj", "{6FDB3316-4DDE-496E-BF00-06B865724C0B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6FDB3316-4DDE-496E-BF00-06B865724C0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FDB3316-4DDE-496E-BF00-06B865724C0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FDB3316-4DDE-496E-BF00-06B865724C0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FDB3316-4DDE-496E-BF00-06B865724C0B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F43DA860-D6E0-41F8-84DC-5B71D6AB308F}
+	EndGlobalSection
+EndGlobal
