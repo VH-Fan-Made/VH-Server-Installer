@@ -12,6 +12,11 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using Microsoft.VisualBasic.ApplicationServices;
 using System.IO.Compression;
+using Microsoft.Win32;
+using System.Windows.Forms;
+using VH_Server_Installer.Resources.Java;
+using WindowsShortcutFactory;
+using Microsoft.Win32.TaskScheduler;
 
 namespace VH_Server_Installer
 {
@@ -27,6 +32,8 @@ namespace VH_Server_Installer
         private string installPath;
         private string tempPath = System.IO.Path.GetTempPath();
         private string vhdlPath;
+        private string javaPath;
+        private List<JavaRuntime> javaRuntimes;
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -42,6 +49,8 @@ namespace VH_Server_Installer
                 }
                 comboBox1.SelectedIndex = 0;
             }
+            PopulateComboBox2();
+
             lockControls(false);
         }
 
@@ -200,7 +209,7 @@ namespace VH_Server_Installer
                 status("Done extracting!!!");
                 lockControls(false);
             }
-            else MessageBox.Show("You did not set a Server Location.\nPlease Select a location before trying again. \nStep 1...","Something is wrong!!", MessageBoxButtons.OK,MessageBoxIcon.Error  );
+            else MessageBox.Show("You did not set a Server Location.\nPlease Select a location before trying again. \nStep 1...", "Something is wrong!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void lockControls(bool _lock)
@@ -218,6 +227,145 @@ namespace VH_Server_Installer
         private void status(string status)
         {
             toolStripStatusLabel2.Text = status;
+        }
+
+        private string[] getJava()
+        {
+            string[] result = new string[1];
+            return result;
+        }
+
+        private void PopulateComboBox2()
+        {
+            javaRuntimes = this.SearchKey("Installer\\Products", "DisplayName", "bin\\java.exe", "DisplayVersion");
+            foreach (JavaRuntime javaRuntime in javaRuntimes)
+            {
+                comboBox2.Items.Add(javaRuntime.Name);
+                if (javaRuntime.Name.Contains("17"))
+                {
+                    comboBox2.Text = javaRuntime.Name;
+                }
+            }
+            if (javaRuntimes.Count == 0)
+            {
+
+            }
+        }
+
+        private List<JavaRuntime> SearchKey(string keyname, string data, string valueToFind, string returnValue)
+        {
+
+            List<JavaRuntime> javaRuntimes = new();
+            RegistryKey uninstallKey = Registry.ClassesRoot.OpenSubKey(keyname);
+            var programs = uninstallKey.GetSubKeyNames();
+
+            foreach (var program in programs)
+            {
+                RegistryKey subkey = uninstallKey.OpenSubKey(program);
+                foreach (string value in subkey.GetValueNames())
+                {
+                    if (subkey.GetValue(value).ToString().Contains(valueToFind))
+                    {
+                        JavaRuntime runtime = new();
+                        runtime.Name = subkey.GetValue("ProductName").ToString();
+                        runtime.Path = subkey.GetValue("ProductIcon").ToString();
+                        javaRuntimes.Add(runtime);
+                    }
+
+                }
+            }
+
+            return javaRuntimes;
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            PopulateComboBox2();
+        }
+
+        private void downoadLink(string link)
+        {
+            Process myProcess = new Process();
+            myProcess.StartInfo.UseShellExecute = true;
+            myProcess.StartInfo.FileName = link;
+            myProcess.Start();
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            downoadLink("https://download.oracle.com/java/17/archive/jdk-17.0.11_windows-x64_bin.msi");
+        }
+
+        private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            downoadLink("https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_windows-x64_bin.zip");
+        }
+
+        private void linkLabel3_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            downoadLink("https://aka.ms/download-jdk/microsoft-jdk-17.0.12-windows-x64.msi");
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            string java = "java";
+            if (javaPath.Length > 0)
+            {
+                java = javaPath;
+            }
+            string sequence = "@user_jvm_args.txt @libraries/net/minecraftforge/forge/1.18.2-40.2.9/win_args.txt %*";
+            if (checkBox1.Checked)
+            {
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                using var shortcut = new WindowsShortcut
+                {
+                    WorkingDirectory = installPath,
+                    Arguments = sequence,
+                    Path = java,
+                    Description = "Start your Vault Hunters Server"
+                };
+                shortcut.Save(desktopPath + "\\Start VH Server.lnk");
+            }
+            if (checkBox2.Checked)
+            {
+                ExecAction ea = new();
+                ea.WorkingDirectory = installPath;
+                ea.Arguments = sequence;
+                ea.Path = java;
+                string taskName = "Start Vault Hunters Server";
+                TaskDefinition td = TaskService.Instance.NewTask();
+                td.RegistrationInfo.Description = "An automated startup for your Vault Hunters Server";
+                td.Actions.Add(ea);
+                td.Triggers.AddNew(TaskTriggerType.Logon);
+                var folder = TaskService.Instance.RootFolder.CreateFolder("Vault Hunters");
+                folder.RegisterTaskDefinition(taskName, td);
+
+            }
+        }
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (javaRuntimes != null)
+            {
+                foreach (var javaRuntime in javaRuntimes)
+                {
+                    if (javaRuntime.Name == comboBox2.Text)
+                    {
+                        javaPath = javaRuntime.Path;
+                    }
+                }
+            }
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            button7.Enabled = true;
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            serverSettingsForm settingsForm = new serverSettingsForm(installPath);
+            settingsForm.ShowDialog();
         }
     }
 }
